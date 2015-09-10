@@ -6,7 +6,7 @@ provider "aws" {
 # Consul servers
 ##############################################################################
 resource "aws_security_group" "consul_server" {
-  name = "${security_group_name}"
+  name = "${var.security_group_name}"
   description = "Consul server, UI and maintenance."
   vpc_id = "${var.vpc_id}"
 
@@ -73,15 +73,15 @@ resource "aws_security_group" "consul_elb" {
   ingress {
     from_port = 80
     to_port = 80
-    protocol = "http"
-    cidr_blocks = ["${var.elb_allowed_cidr_blocks} "]
+    protocol = "tcp"
+    cidr_blocks = ["${var.elb_allowed_cidr_blocks}"]
   }
 
   ingress {
     from_port = 443
     to_port = 443
-    protocol = "https"
-    cidr_blocks = ["${var.elb_allowed_cidr_blocks} "]
+    protocol = "tcp"
+    cidr_blocks = ["${var.elb_allowed_cidr_blocks}"]
   }
 
   egress {
@@ -153,7 +153,7 @@ resource "aws_elb" "consul" {
     interval = 30
   }
 
-  instances = ["${module.consul_servers_a.ids}", "${module.consul_servers_b.ids}"]
+  instances = ["${split(",", module.consul_servers_a.ids)}", "${split(",", module.consul_servers_b.ids)}"]
   cross_zone_load_balancing = true
   idle_timeout = 400
   connection_draining = true
@@ -183,19 +183,6 @@ resource "aws_route53_zone" "private_zone" {
 resource "aws_route53_record" "consul_private" {
   zone_id = "${aws_route53_zone.private_zone.zone_id}"
   name = "consul"
-  type = "A"
-
-  alias {
-    name = "${aws_elb.consul.dns_name}"
-    zone_id = "${aws_elb.consul.zone_id}"
-    evaluate_target_health = true
-  }
-}
-
-# this may be removed
-resource "aws_route53_record" "consul_public" {
-  zone_id = "${var.public_hosted_zone_id}"
-  name = "consul.${var.public_hosted_zone_name}"
   type = "A"
 
   alias {

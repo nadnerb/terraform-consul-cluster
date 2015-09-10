@@ -1,5 +1,5 @@
 ### MANDATORY ###
-variable "hosted_zone_name" {}
+variable "private_hosted_zone_name" {}
 variable "public_hosted_zone_id" {}
 variable "public_hosted_zone_name" {}
 
@@ -59,8 +59,9 @@ variable "additional_security_groups" {
 # ELB / Route53 Configuration
 ###################################################################
 
+### MANDATORY ###
 variable "elb_allowed_cidr_blocks"{
-  default = "0.0.0.0/0"
+  description = "elb security group allowed traffic"
 }
 
 ### MANDATORY ###
